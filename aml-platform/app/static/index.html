@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AML Compliance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: #131b2e;
+      --card-border: #1e293b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --danger: #f43f5e;
+      --warning: #f59e0b;
+      --info: #06b6d4;
+      --text-main: #f8fafc;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 22px;
+      color: white;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-title h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    .brand-title p { font-size: 13px; color: var(--text-muted); }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--success);
+      font-weight: 600;
+    }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 1000px) {
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .metric-card p { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-card h2 { font-size: 26px; font-weight: 700; margin-top: 6px; color: var(--text-main); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1100px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .card-title { font-size: 16px; font-weight: 600; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th { color: var(--text-muted); font-weight: 600; background: rgba(9, 13, 22, 0.5); }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-critical { background: rgba(244, 63, 94, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .badge-high { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+    .badge-medium { background: rgba(6, 182, 212, 0.2); color: var(--info); border: 1px solid var(--info); }
+    .badge-low { background: rgba(100, 116, 139, 0.2); color: var(--text-muted); }
+
+    .btn-action {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-right: 4px;
+    }
+
+    .btn-freeze { background: var(--danger); color: white; }
+    .btn-unfreeze { background: var(--success); color: white; }
+    .btn-details { background: rgba(255, 255, 255, 0.1); color: white; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-logo">AML</div>
+      <div class="brand-title">
+        <h1>AML Compliance & Case Management Dashboard</h1>
+        <p>Bank-Agnostic Anti-Money Laundering Real-Time Engine</p>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="status-pill">
+        <div class="dot"></div>
+        Engine Active
+      </div>
+      <a href="/docs" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 500;">API Docs (Swagger) &rarr;</a>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <p>Total Ingested Events</p>
+      <h2 id="m-txs">--</h2>
+    </div>
+    <div class="metric-card">
+      <p>Active Compliance Cases</p>
+      <h2 id="m-cases" style="color: var(--warning);">--</h2>
+    </div>
+    <div class="metric-card">
+      <p>Mock Model Status</p>
+      <h2 id="m-model" style="color: var(--success);">ONLINE</h2>
+    </div>
+    <div class="metric-card">
+      <p>Unscored Backlog</p>
+      <h2 id="m-unscored">0</h2>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    
+    <!-- Left Column: Case Alert Queue -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Compliance Alerts & Cases Queue</div>
+        <button onclick="loadCases()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px; font-weight: 600;">Refresh List</button>
+      </div>
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Case ID</th>
+              <th>Typology / Rule</th>
+              <th>Risk Score</th>
+              <th>Severity</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="cases-body">
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading cases...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right Column: Live Event Stream & Quick Account Actions -->
+    <div>
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title">Quick Account Compliance Action</div>
+        <div style="margin-top: 14px;">
+          <input type="text" id="freeze-acc-id" placeholder="Account ID (e.g. 8724731955)" style="width: 100%; padding: 10px; background: #090d16; border: 1px solid var(--card-border); border-radius: 6px; color: white; margin-bottom: 10px;">
+          <div style="display: flex; gap: 8px;">
+            <button onclick="freezeAccount()" class="btn-action btn-freeze" style="flex: 1; padding: 10px;">Freeze Account</button>
+            <button onclick="unfreezeAccount()" class="btn-action btn-unfreeze" style="flex: 1; padding: 10px;">Unfreeze Account</button>
+          </div>
+          <div id="action-msg" style="margin-top: 10px; font-size: 12px;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Real-Time Ingestion Stream</div>
+        <div style="max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px;" id="stream-box">
+          <div style="color: var(--text-muted); padding: 10px;">Listening for transaction webhooks...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    async function loadCases() {
+      try {
+        const res = await fetch('/api/cases?bank_id=fakebank-01');
+        const cases = await res.json();
+        document.getElementById('m-cases').innerText = cases.length;
+
+        const tbody = document.getElementById('cases-body');
+        tbody.innerHTML = '';
+
+        if (cases.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No suspicious cases flagged yet</td></tr>';
+          return;
+        }
+
+        cases.forEach(c => {
+          const tr = document.createElement('tr');
+          let badgeClass = 'badge-low';
+          if (c.risk_level === 'Critical') badgeClass = 'badge-critical';
+          else if (c.risk_level === 'High') badgeClass = 'badge-high';
+          else if (c.risk_level === 'Medium') badgeClass = 'badge-medium';
+
+          tr.innerHTML = `
+            <td><code>${c.id}</code></td>
+            <td><strong>${c.typology || 'Rule Alert'}</strong></td>
+            <td><strong>${(c.risk_score * 100).toFixed(0)}%</strong> (${c.risk_score.toFixed(2)})</td>
+            <td><span class="badge ${badgeClass}">${c.risk_level}</span></td>
+            <td><span class="badge badge-low">${c.status}</span></td>
+            <td>
+              <button onclick="freezeAccount('${c.account_id || 8724731955}')" class="btn-action btn-freeze">Freeze</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error('Failed to load cases:', err);
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/transactions');
+        const txs = await res.json();
+        document.getElementById('m-txs').innerText = txs.length;
+
+        const modelRes = await fetch('/api/model/status');
+        const mStatus = await modelRes.json();
+        document.getElementById('m-unscored').innerText = mStatus.unscored || 0;
+      } catch (e) {}
+    }
+
+    async function freezeAccount(accId) {
+      const aid = accId || document.getElementById('freeze-acc-id').value;
+      const msg = document.getElementById('action-msg');
+      if (!aid) { alert('Please enter an account ID'); return; }
+
+      try {
+        const res = await fetch(`/api/accounts/fakebank-01/${aid}/freeze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ case_id: 'MANUAL', reason: 'Compliance order via dashboard' })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.innerHTML = `<span style="color: var(--danger)">Account ${aid} frozen!</span>`;
+        } else {
+          msg.innerHTML = `<span style="color: var(--danger)">Error: ${data.detail || 'Freeze failed'}</span>`;
+        }
+      } catch (e) {
+        msg.innerText = e.message;
+      }
+    }
+
+    async function unfreezeAccount(accId) {
+      const aid = accId || document.getElementById('freeze-acc-id').value;
+      const msg = document.getElementById('action-msg');
+      if (!aid) { alert('Please enter an account ID'); return; }
+
+      try {
+        const res = await fetch(`/api/accounts/fakebank-01/${aid}/unfreeze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ case_id: 'MANUAL', reason: 'Compliance unfreeze order' })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          msg.innerHTML = `<span style="color: var(--success)">Account ${aid} unfrozen!</span>`;
+        } else {
+          msg.innerHTML = `<span style="color: var(--danger)">Error: ${data.detail || 'Unfreeze failed'}</span>`;
+        }
+      } catch (e) {
+        msg.innerText = e.message;
+      }
+    }
+
+    loadCases();
+    loadStats();
+    setInterval(() => { loadCases(); loadStats(); }, 3000);
+
+    // WebSocket for Real-Time Stream
+    function connectStream() {
+      const ws = new WebSocket(`ws://${window.location.host}/ws/transactions`);
+      const box = document.getElementById('stream-box');
+      
+      ws.onmessage = (event) => {
+        let msg = event.data;
+        try {
+          const parsed = JSON.parse(msg);
+          msg = `[${new Date().toLocaleTimeString()}] TX: ${parsed.id} | $${parsed.amount} | ${parsed.sender} -> ${parsed.receiver}`;
+        } catch(e) {}
+        
+        const div = document.createElement('div');
+        div.style.padding = '4px 10px';
+        div.style.borderBottom = '1px solid var(--card-border)';
+        div.style.color = '#3b82f6';
+        div.innerText = msg;
+        
+        box.prepend(div);
+        
+        // limit to 50 items
+        if(box.children.length > 50) {
+          box.removeChild(box.lastChild);
+        }
+      };
+      
+      ws.onclose = () => {
+        setTimeout(connectStream, 3000); // Reconnect
+      };
+    }
+    
+    connectStream();
+  </script>
+</body>
+</html>

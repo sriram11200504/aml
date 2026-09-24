@@ -1,0 +1,134 @@
+version: "3.9"
+
+services:
+  # ── Databases ───────────────────────────────────────────────────────────────
+  bank-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: bankuser
+      POSTGRES_PASSWORD: bankpass
+      POSTGRES_DB: bankdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - bank-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bankuser -d bankdb"]
+      interval: 5s
+      retries: 10
+
+  aml-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: amluser
+      POSTGRES_PASSWORD: amlpass
+      POSTGRES_DB: amldb
+    ports:
+      - "5434:5432"
+    volumes:
+      - aml-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U amluser -d amldb"]
+      interval: 5s
+      retries: 10
+
+  # ── Mock Model Service ────────────────────────────────────────────────────────
+  mock-model:
+    build:
+      context: ./aml-platform/mock-model-service
+      dockerfile: Dockerfile
+    ports:
+      - "8200:8200"
+    environment:
+      PORT: 8200
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8200/health || exit 1"]
+      interval: 10s
+      retries: 5
+
+  # ── AML Platform API ──────────────────────────────────────────────────────────
+  aml-api:
+    build:
+      context: ./aml-platform
+      dockerfile: Dockerfile
+    ports:
+      - "8100:8100"
+    environment:
+      USE_SQLITE: "false"
+      DATABASE_URL: ""
+      POSTGRES_USER: amluser
+      POSTGRES_PASSWORD: amlpass
+      POSTGRES_DB: amldb
+      POSTGRES_HOST: aml-db
+      POSTGRES_PORT: 5432
+      MODEL_API_URL: http://mock-model:8200
+      DASHBOARD_ORIGIN: http://localhost:4000
+      INGEST_API_KEYS: aml-secret-key-01=fakebank-01
+      BANK_COMPLIANCE_CONFIGS: fakebank-01=http://bank-api:8000:compliance-secret-key-01
+    depends_on:
+      aml-db:
+        condition: service_healthy
+      mock-model:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8100/health || exit 1"]
+      interval: 10s
+      retries: 5
+
+  # ── Fake Bank API ─────────────────────────────────────────────────────────────
+  bank-api:
+    build:
+      context: ./fake-bank
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      USE_SQLITE: "false"
+      DATABASE_URL: ""
+      POSTGRES_USER: bankuser
+      POSTGRES_PASSWORD: bankpass
+      POSTGRES_DB: bankdb
+      POSTGRES_HOST: bank-db
+      POSTGRES_PORT: 5432
+      AML_URL: http://aml-api:8100
+      AML_API_KEY: aml-secret-key-01
+      COMPLIANCE_API_KEY: compliance-secret-key-01
+      FRONTEND_ORIGIN: http://localhost:3000
+    depends_on:
+      bank-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 10s
+      retries: 5
+
+  # ── Fake Bank Frontend ────────────────────────────────────────────────────────
+  bank-frontend:
+    build:
+      context: ./fake-bank/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_BANK_API_URL: http://localhost:8000
+    depends_on:
+      bank-api:
+        condition: service_healthy
+
+  # ── AML Dashboard ─────────────────────────────────────────────────────────────
+  aml-dashboard:
+    build:
+      context: ./aml-platform/dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      VITE_AML_API_URL: http://localhost:8100
+      VITE_AML_WS_URL: ws://localhost:8100
+    depends_on:
+      aml-api:
+        condition: service_healthy
+
+volumes:
+  bank-db-data:
+  aml-db-data:

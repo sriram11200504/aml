@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fake Bank - Customer Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: white;
+    }
+
+    .brand-title h1 { font-size: 20px; font-weight: 700; }
+    .brand-title p { font-size: 13px; color: var(--text-muted); }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .grid-container { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: var(--primary-hover); }
+
+    .notification {
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-size: 13px;
+      display: none;
+    }
+
+    .notification.success { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--success); color: var(--success); }
+    .notification.error { background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: var(--danger); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    th { color: var(--text-muted); font-weight: 600; background: rgba(15, 23, 42, 0.4); }
+
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-active { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .badge-frozen { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .stat-card p { font-size: 12px; color: var(--text-muted); }
+    .stat-card h3 { font-size: 20px; font-weight: 700; margin-top: 4px; color: var(--text-main); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand">
+      <div class="brand-logo">FB</div>
+      <div class="brand-title">
+        <h1>Fake Bank Customer Portal</h1>
+        <p>Core Banking Simulation API Endpoint: localhost:8000</p>
+      </div>
+    </div>
+    <div style="text-align: right;">
+      <a href="/docs" target="_blank" style="color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 500;">API Docs (Swagger) &rarr;</a>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <p>Total Seeded Accounts</p>
+      <h3 id="stat-accounts">--</h3>
+    </div>
+    <div class="stat-card">
+      <p>Outbox Webhooks Dispatched</p>
+      <h3 id="stat-outbox-sent">--</h3>
+    </div>
+    <div class="stat-card">
+      <p>Outbox Pending</p>
+      <h3 id="stat-outbox-pending">--</h3>
+    </div>
+  </div>
+
+  <div class="grid-container">
+    
+    <!-- Left Column: Transfer Form -->
+    <div class="card">
+      <div class="card-title">Initiate Transfer</div>
+      <form id="transfer-form">
+        <div class="form-group">
+          <label>Sender Account</label>
+          <select id="sender-select" required></select>
+        </div>
+
+        <div class="form-group">
+          <label>Receiver Account Number</label>
+          <select id="receiver-select" required></select>
+        </div>
+
+        <div class="form-group">
+          <label>Amount (INR ₹)</label>
+          <input type="number" id="amount-input" step="100" min="1" value="5000" required>
+        </div>
+
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select id="payment-type">
+            <option value="ACH">ACH Transfer</option>
+            <option value="WIRE">Wire Transfer</option>
+            <option value="SEPA">SEPA</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="test-funding" checked style="width: auto;">
+          <label for="test-funding" style="margin: 0; cursor: pointer;">Auto-fund account if balance insufficient</label>
+        </div>
+
+        <button type="submit" class="btn" id="btn-submit">Submit Transfer</button>
+      </form>
+
+      <div id="notice" class="notification"></div>
+    </div>
+
+    <!-- Right Column: Accounts & Transactions -->
+    <div>
+      <div class="card" style="margin-bottom: 24px;">
+        <div class="card-title">
+          <span>Active Bank Accounts</span>
+          <button onclick="loadAccounts()" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px;">Refresh</button>
+        </div>
+        <div style="max-height: 250px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Account ID</th>
+                <th>Holder Name</th>
+                <th>Balance (₹)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="accounts-table-body">
+              <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading accounts...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>Recent Bank Transactions</span>
+        </div>
+        <div style="max-height: 250px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Tx ID</th>
+                <th>Sender</th>
+                <th>Receiver</th>
+                <th>Amount (₹)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tx-table-body">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No recent transactions</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let accountsData = [];
+
+    async function loadAccounts() {
+      try {
+        const res = await fetch('/api/accounts');
+        accountsData = await res.json();
+        
+        document.getElementById('stat-accounts').innerText = accountsData.length;
+
+        const senderSel = document.getElementById('sender-select');
+        const receiverSel = document.getElementById('receiver-select');
+        const tbody = document.getElementById('accounts-table-body');
+
+        senderSel.innerHTML = '';
+        receiverSel.innerHTML = '';
+        tbody.innerHTML = '';
+
+        accountsData.forEach(a => {
+          const opt1 = document.createElement('option');
+          opt1.value = a.account_id;
+          opt1.innerText = `${a.account_id} - ${a.holder_name} (₹${a.balance.toLocaleString()})`;
+          senderSel.appendChild(opt1);
+
+          const opt2 = document.createElement('option');
+          opt2.value = a.account_id;
+          opt2.innerText = `${a.account_id} - ${a.holder_name}`;
+          receiverSel.appendChild(opt2);
+
+          const tr = document.createElement('tr');
+          const badgeClass = a.status === 'active' ? 'badge-active' : 'badge-frozen';
+          tr.innerHTML = `
+            <td><strong>${a.account_id}</strong></td>
+            <td>${a.holder_name}</td>
+            <td>₹${a.balance.toLocaleString()}</td>
+            <td><span class="badge ${badgeClass}">${a.status.toUpperCase()}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        if (accountsData.length > 1) {
+          receiverSel.selectedIndex = 1;
+        }
+
+        loadOutboxStats();
+      } catch (err) {
+        console.error('Error loading accounts:', err);
+      }
+    }
+
+    async function loadOutboxStats() {
+      try {
+        const res = await fetch('/api/outbox/stats');
+        const data = await res.json();
+        document.getElementById('stat-outbox-sent').innerText = data.sent;
+        document.getElementById('stat-outbox-pending').innerText = data.pending;
+      } catch (e) {}
+    }
+
+    document.getElementById('transfer-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit');
+      const notice = document.getElementById('notice');
+      notice.style.display = 'none';
+      btn.innerText = 'Processing Transfer...';
+      btn.disabled = true;
+
+      const payload = {
+        sender_account: parseInt(document.getElementById('sender-select').value),
+        receiver_account: parseInt(document.getElementById('receiver-select').value),
+        amount: parseFloat(document.getElementById('amount-input').value),
+        payment_type: document.getElementById('payment-type').value,
+        test_funding: document.getElementById('test-funding').checked
+      };
+
+      try {
+        const res = await fetch('/api/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          notice.className = 'notification success';
+          notice.innerText = `Transfer Successful! Transaction ID: ${data.transaction_id}`;
+          notice.style.display = 'block';
+
+          // Add to recent tx table
+          const txTable = document.getElementById('tx-table-body');
+          if (txTable.innerText.includes('No recent transactions')) txTable.innerHTML = '';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>${data.transaction_id}</code></td>
+            <td>${payload.sender_account}</td>
+            <td>${payload.receiver_account}</td>
+            <td>₹${payload.amount.toLocaleString()}</td>
+            <td><span class="badge badge-active">${data.status}</span></td>
+          `;
+          txTable.prepend(tr);
+
+          loadAccounts();
+        } else {
+          notice.className = 'notification error';
+          notice.innerText = `Transfer Rejected: ${data.message || data.detail || 'Transaction failed'}`;
+          notice.style.display = 'block';
+        }
+      } catch (err) {
+        notice.className = 'notification error';
+        notice.innerText = `Error connecting to server: ${err.message}`;
+        notice.style.display = 'block';
+      } finally {
+        btn.innerText = 'Submit Transfer';
+        btn.disabled = false;
+      }
+    });
+
+    loadAccounts();
+    setInterval(loadOutboxStats, 3000);
+  </script>
+</body>
+</html>
