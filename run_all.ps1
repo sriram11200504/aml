@@ -21,16 +21,11 @@ function Wait-ForHealth {
     param([string]$Url, [string]$Name, [int]$MaxSeconds = 15)
     Write-Host -NoNewline "  Waiting for $Name"
     $deadline = (Get-Date).AddSeconds($MaxSeconds)
-    $client = New-Object System.Net.Http.HttpClient
-    $client.Timeout = [TimeSpan]::FromSeconds(2)
     while ((Get-Date) -lt $deadline) {
         try {
-            $task = $client.GetAsync("$Url/health")
-            $task.Wait()
-            $resp = $task.Result
-            if ($resp.IsSuccessStatusCode) {
+            $resp = Invoke-WebRequest -Uri "$Url/health" -UseBasicParsing -ErrorAction Stop
+            if ($resp.StatusCode -eq 200) {
                 Write-Host " [OK]" -ForegroundColor Green
-                $client.Dispose()
                 return $true
             }
         } catch {
@@ -39,7 +34,6 @@ function Wait-ForHealth {
         Start-Sleep -Milliseconds 500
         Write-Host -NoNewline "."
     }
-    $client.Dispose()
     Write-Host " [TIMEOUT]" -ForegroundColor Red
     return $false
 }

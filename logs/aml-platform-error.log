@@ -1,7 +1,9 @@
-INFO:     Started server process [24596]
+INFO:     Started server process [14908]
 INFO:     Waiting for application startup.
 INFO:app.main:AML Platform API started on port 8100
 INFO:app.worker:Score worker started
 INFO:app.worker:Monitor worker started
 INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8100 (Press CTRL+C to quit)
+ERROR:    [Errno 10048] error while attempting to bind on address ('0.0.0.0', 8100): [winerror 10048] only one usage of each socket address (protocol/network address/port) is normally permitted
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.

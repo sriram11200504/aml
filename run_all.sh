@@ -28,6 +28,8 @@ wait_for_health() {
   echo " OK ✓"
 }
 
+mkdir -p "$ROOT/logs" "$ROOT/pids"
+
 # ── Mock Model Service ─────────────────────────────────────────────────────────
 echo ""
 echo "▶ Starting Mock Model Service (port 8200)..."
@@ -55,20 +57,6 @@ mkdir -p data
 nohup ./venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 > "$ROOT/logs/bank-api.log" 2>&1 &
 echo $! > "$ROOT/pids/bank-api.pid"
 
-# ── Fake Bank Frontend ─────────────────────────────────────────────────────────
-echo "▶ Starting Fake Bank Frontend (port 3000)..."
-cd "$ROOT/fake-bank/frontend"
-[ ! -d node_modules ] && npm install -q
-VITE_BANK_API_URL=http://localhost:8000 nohup npm run dev -- --port 3000 --host > "$ROOT/logs/bank-frontend.log" 2>&1 &
-echo $! > "$ROOT/pids/bank-frontend.pid"
-
-# ── AML Dashboard ──────────────────────────────────────────────────────────────
-echo "▶ Starting AML Dashboard (port 4000)..."
-cd "$ROOT/aml-platform/dashboard"
-[ ! -d node_modules ] && npm install -q
-VITE_AML_API_URL=http://localhost:8100 VITE_AML_WS_URL=ws://localhost:8100 nohup npm run dev -- --port 4000 --host > "$ROOT/logs/aml-dashboard.log" 2>&1 &
-echo $! > "$ROOT/pids/aml-dashboard.pid"
-
 # ── Health checks ──────────────────────────────────────────────────────────────
 echo ""
 echo "Waiting for services to be ready..."
@@ -80,11 +68,12 @@ echo ""
 echo "╔══════════════════════════════════════════════════════╗"
 echo "║                  All Services Ready                  ║"
 echo "╠══════════════════════════════════════════════════════╣"
-echo "║  Fake Bank API        http://localhost:8000/health   ║"
-echo "║  Fake Bank Frontend   http://localhost:3000          ║"
-echo "║  AML Platform API     http://localhost:8100/health   ║"
-echo "║  AML Dashboard        http://localhost:4000          ║"
-echo "║  Mock Model Service   http://localhost:8200/health   ║"
+echo "║  Fake Bank App        http://localhost:8000          ║"
+echo "║  Fake Bank API        http://localhost:8000/docs     ║"
+echo "║  AML Dashboard        http://localhost:8100/dashboard║"
+echo "║  AML Platform API     http://localhost:8100/docs     ║"
+echo "║  Mock Model Service   http://localhost:8200/docs     ║"
 echo "╠══════════════════════════════════════════════════════╣"
+echo "║  Logs: ./logs/                                       ║"
 echo "║  To stop: ./stop_all.sh                              ║"
 echo "╚══════════════════════════════════════════════════════╝"
